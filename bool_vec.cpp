@@ -2,7 +2,19 @@
 #include <cstring>
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
+#include <bitset>
 
+
+inline char get_left_bits(char c, char num) {
+    char mask = ((1 << num) - 1) << (8 - num);
+    return mask & c;
+}
+
+inline char get_right_bits(char c, char num) {
+    char mask = (1 << num) - 1;
+    return mask & c;
+}
 
 vector<bool>::reference::reference(char* byte_ptr, char offset): byte_ptr(byte_ptr), offset(offset) {}
 
@@ -19,6 +31,7 @@ vector<bool>::reference::operator bool() const {
 
 
 void vector<bool>::reserve(uint32 new_cap) {
+    std::cout << "reserve\n";
 
     if (new_cap <= cap) return;
 
@@ -70,15 +83,40 @@ const vector<bool>::reference vector<bool>::at(uint32 index) const {
 uint32 vector<bool>::size() {return sz;}
 
 void vector<bool>::insert(uint32 index, bool x) {
+    if (sz == cap) reserve(2*cap);
+
     char* byte_ptr = data + index / 8;
     char offset = index % 8;
-    char new_byte = *byte_ptr / (7 - index / 8) << (7 - index / 8) + x << ();
 
-    for (; byte_ptr != data + (sz % 8 != 0 ? sz / 8 + 1 : sz / 8); ++byte_ptr) {
+    // std::cout << std::bitset<8>(get_left_bits(*byte_ptr, offset)) << '\n';
+    // std::cout << std::bitset<8>(x << (7 - offset)) << '\n';
+    // std::cout << std::bitset<8>(get_right_bits(*byte_ptr, 7 - offset) >> 1) << '\n';
+    
 
+    bool carry = (*byte_ptr) & 1;
+    *byte_ptr = get_left_bits(*byte_ptr, offset) + (x << (7 - offset)) + (get_right_bits(*byte_ptr, 7 - offset) >> 1);
+
+    ++byte_ptr;
+    ++sz;
+
+
+    for (; byte_ptr != data + (sz % 8 ? sz / 8 + 1 : sz / 8); ++byte_ptr) {
+        bool new_carry = *byte_ptr & 1;
+
+        *byte_ptr = ((*byte_ptr >> 1) & 0b01111111 ) + (carry << 7);
+        carry = new_carry;
     }
 }
 
 void vector<bool>::erase(uint32 index) {
+    char* byte_ptr = data + index / 8;
+    char offset = index % 8;
 
+    *byte_ptr = get_left_bits(*byte_ptr, offset) + (get_right_bits(*byte_ptr, 8 - offset) << 1);
+
+    for (; byte_ptr != data + (sz % 8 ? sz / 8 + 1 : sz / 8) - 1; ++byte_ptr) {
+        *byte_ptr += (byte_ptr[1] & 0b10000000) >> 7;
+        byte_ptr[1] = byte_ptr[1] << 1;
+    }
+    --sz;
 }

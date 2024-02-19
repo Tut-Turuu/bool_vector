@@ -3,6 +3,10 @@
 using uint32 = unsigned int;
 
 
+inline char get_left_bits(char c, char num);
+
+inline char get_right_bits(char c, char num);
+
 template <typename T>
 class vector {};
 

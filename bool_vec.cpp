@@ -31,13 +31,12 @@ vector<bool>::reference::operator bool() const {
 
 
 void vector<bool>::reserve(uint32 new_cap) {
-    std::cout << "reserve\n";
 
     if (new_cap <= cap) return;
 
     decltype(data) new_data = new char[new_cap];
 
-    if (data != nullptr) memcpy(new_data, data, sz*8);
+    if (data != nullptr) memcpy(new_data, data, sz % 8 ? sz / 8 + 1 : sz / 8);
 
     delete[] data;
 
@@ -48,12 +47,40 @@ void vector<bool>::reserve(uint32 new_cap) {
 
 vector<bool>::vector(): data(nullptr), sz(0), cap(0) {}
 
+vector<bool>::vector(const vector& other): sz(other.sz), cap(other.cap) {
+    data = new char[cap];
+
+    if (other.data != nullptr) memcpy(data, other.data, sz % 8 ? sz / 8 + 1 : sz / 8);
+
+}
+
+vector<bool>::vector(const char* c_str) {
+
+    uint32 len = strlen(c_str);
+    cap = len % 8 ? len / 8 + 1: len / 8;
+    sz = len;
+    data = new char[cap];
+
+    char byte = 0;
+    for (int i = 0; i < cap; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            if (c_str[8*i + j] < '0' || c_str[8*i + j] > '1') throw std::invalid_argument("non bool initialization of bool vector");
+            byte = byte << 1;
+            byte += c_str[8*i + j] - '0';
+        }
+        data[i] = byte;
+        byte = 0;
+    }
+}
+
+
 vector<bool>::~vector() {
     delete[] data;
 }
 
 void vector<bool>::push_back(bool x) {
     if (sz == cap*8) reserve(cap*2+1);
+
     char* byte_ptr = data + sz / 8;
     char offset = sz % 8;
     *byte_ptr = (x ? *byte_ptr | (1 << (7 - offset)) : *byte_ptr & ~(1 << (7 - offset)));
@@ -63,7 +90,6 @@ void vector<bool>::push_back(bool x) {
 
 vector<bool>::reference vector<bool>::operator[](uint32 index) {
     return vector<bool>::reference(data + index / 8, index % 8);
-
 }
 
 const vector<bool>::reference vector<bool>::operator[](uint32 index) const {
@@ -80,7 +106,7 @@ const vector<bool>::reference vector<bool>::at(uint32 index) const {
     return vector<bool>::reference(data + index / 8, index % 8);
 }
 
-uint32 vector<bool>::size() {return sz;}
+uint32 vector<bool>::size() const {return sz;}
 
 void vector<bool>::insert(uint32 index, bool x) {
     if (sz == cap) reserve(2*cap);
@@ -98,7 +124,6 @@ void vector<bool>::insert(uint32 index, bool x) {
 
     ++byte_ptr;
     ++sz;
-
 
     for (; byte_ptr != data + (sz % 8 ? sz / 8 + 1 : sz / 8); ++byte_ptr) {
         bool new_carry = *byte_ptr & 1;

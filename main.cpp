@@ -5,27 +5,17 @@
 
 int main() {
 
-    vector<bool> bv;
-
-    // std::cout << "start\n";
-
+    vector<bool> bv("10101010");
+    bv[0] = 0;
     
-    bv.push_back(false);
-    bv.push_back(true);
-    bv.push_back(false);
-    bv.push_back(true);
-    bv.push_back(false);
-    bv.push_back(true);
-    bv.push_back(false);
-    bv.push_back(true);
+    const vector<bool> cbv("10111011");
 
-    bv.push_back(true);
-    bv.push_back(true);
-    bv.push_back(true);
+    for (uint32 i = 0; i < cbv.size(); ++i) {
+        if (i % 8 == 0 && i) std::cout << ' ';
+        std::cout << cbv[i];
+    }
+    std::cout << '\n';
 
-
-    bv.insert(2, true);
-    bv.erase(0);
 
 
     for (uint32 i = 0; i < bv.size(); ++i) {

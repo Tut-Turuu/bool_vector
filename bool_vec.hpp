@@ -14,8 +14,8 @@ template <>
 class vector<bool> {
 
     char* data;
-    uint32 sz;
-    uint32 cap;
+    uint32 sz; // in bits
+    uint32 cap; // in bytes 
 
     class reference {
         char* byte_ptr;
@@ -35,6 +35,10 @@ public:
 
     vector();
 
+    vector(const vector& other);
+
+    vector(const char* c_str);
+
     ~vector();
 
     void push_back(bool x);
@@ -47,7 +51,7 @@ public:
 
     const reference at(uint32 index) const;
 
-    uint32 size();
+    uint32 size() const;
 
     void insert(uint32 index, bool x);
 
